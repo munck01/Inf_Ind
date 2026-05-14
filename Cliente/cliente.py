@@ -46,9 +46,9 @@ class Cliente():
             img_bytes = bytes(img_bytes)
             tamanho_da_imagem_codificado = len(img_bytes).to_bytes(4, 'big')
             
-            self.__tcp.sendall(tamanho_da_imagem_codificado)
+            self.__tcp.send(tamanho_da_imagem_codificado)
             
-            self.__tcp.sendall(img_bytes)
+            self.__tcp.send(img_bytes)
             
 
             print("Imagem Enviada")
@@ -58,7 +58,8 @@ class Cliente():
             
             img_bytes_m = self.__tcp.recv(tam)
 
-            
+            self.__tcp.close()
+
             img = cv2.imdecode(np.frombuffer(img_bytes_m, np.uint8), cv2.IMREAD_COLOR)
 
             print("Imagem Recebida")
@@ -67,6 +68,6 @@ class Cliente():
             cv2.waitKey(0)
             cv2.destroyAllWindows()
             
-            self.__tcp.close()
+            
         except Exception as e:
             print("Erro ao realizar comunicação com o servidor", e.args)

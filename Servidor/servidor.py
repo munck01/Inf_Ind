@@ -34,7 +34,7 @@ class Servidor():
 
     def _service(self, con, client):
         """
-        Método que implementa o serviço de calculadora
+        Método que implementa o serviço de identificação e marcação de faces
         :param con: objeto socket utilizado para enviar e receber dados
         :param client: é o endereço do cliente
         """
@@ -43,10 +43,13 @@ class Servidor():
             try:
                 tamanho_da_imagem_codificado = con.recv(1024)
                 tam = int.from_bytes(tamanho_da_imagem_codificado, 'big')
+                
                 img_bytes = con.recv(tam)
                 
-                nparr = np.frombuffer(img_bytes, np.uint8)   
-                img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+                buffer = np.frombuffer(img_bytes, np.uint8) 
+                  
+                
+                img = cv2.imdecode(buffer, cv2.IMREAD_COLOR)
 
                 xml_classificador = os.path.join(os.path.relpath(
                 cv2.__file__).replace('__init__.py', ''), 'data/haarcascade_frontalface_default.xml')
@@ -57,16 +60,16 @@ class Servidor():
 
                 # Desenha retângulos nas áreas onde as faces foram detectadas
                 for (x, y, w, h) in faces:
-                    cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                    cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 3)
                 
                 # codificação para bytes
                 _, img_bytes = cv2.imencode('.jpg', img) 
                 img_bytes_m = bytes(img_bytes)
                 tamanho_da_imagem_codificado_m = len(img_bytes).to_bytes(4, 'big')
             
-                con.sendall(tamanho_da_imagem_codificado_m)
+                con.send(tamanho_da_imagem_codificado_m)
             
-                con.sendall(img_bytes_m)
+                con.send(img_bytes_m)
 
                 print(client, " -> requisição atendida")
             except OSError as e:
